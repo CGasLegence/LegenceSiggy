@@ -45,33 +45,36 @@ function cleanHtmlForWhitespace(html) {
 }
 
 async function onNewMessageComposeHandler(event) {
+    const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
     const item = Office.context.mailbox.item;
+    if (platform.includes("android") || platform.includes("ios")) {
+        // Load and process the signature file
+        const rawHtmlSignature = await loadSignatureFromFile();
+        if (!rawHtmlSignature) {
+            console.error("Failed to load the signature.");
+            event.completed();
+            return;
+        }
 
-    // Load and process the signature file
-    const rawHtmlSignature = await loadSignatureFromFile();
-    if (!rawHtmlSignature) {
-        console.error("Failed to load the signature.");
-        event.completed();
-        return;
+        // Clean the HTML to remove extra whitespace
+        const cleanedHtmlSignature = cleanHtmlForWhitespace(rawHtmlSignature);
+
+        // Insert the cleaned HTML into the email body
+        item.body.setSignatureAsync(cleanedHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
+            if (result.status === Office.AsyncResultStatus.Failed) {
+                console.error("Error inserting the signature:", result.error.message);
+            }
+            event.completed();
+        });
+
+        // Add a notification to confirm success
+        const notification = {
+            type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+            message: "Signature added successfully",
+            icon: "none",
+            persistent: false
+        };
+        Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", notification);
     }
 
-    // Clean the HTML to remove extra whitespace
-    const cleanedHtmlSignature = cleanHtmlForWhitespace(rawHtmlSignature);
-
-    // Insert the cleaned HTML into the email body
-    item.body.setSignatureAsync(cleanedHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
-        if (result.status === Office.AsyncResultStatus.Failed) {
-            console.error("Error inserting the signature:", result.error.message);
-        }
-        event.completed();
-    });
-
-    // Add a notification to confirm success
-    const notification = {
-        type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-        message: "Signature added successfully",
-        icon: "none",
-        persistent: false
-    };
-    Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", notification);
 }
