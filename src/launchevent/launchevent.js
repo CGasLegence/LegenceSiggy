@@ -5,73 +5,74 @@
 
 // Add start-up logic code here, if any.
 Office.onReady();
-function loadSignatureFromFile() {
-    
 
+async function loadSignatureFromFile() {
     // Dynamically build the file path with the user's email
     const filePath = "https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html";
     try {
-        const response =  fetch(filePath, { cache: "no-store" }); // no-store ensures no caching
+        const response = await fetch(filePath, { cache: "no-store" }); // no-store ensures no caching
         if (!response.ok) {
             throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
         }
-        return  response.text();
+        return response.text();
     } catch (error) {
         console.error('Error fetching HTML file:', error);
         return null;
     }
 }
-function onNewMessageComposeHandler(event) {
+
+function renderAndUseHtmlAsText(html) {
+    // Create a hidden DOM element to render the HTML
+    const container = document.createElement("div");
+    container.innerHTML = html;
+
+    // Extract rendered text from the HTML
+    return container.innerText;
+}
+
+async function onNewMessageComposeHandler(event) {
     const item = Office.context.mailbox.item;
-    const signatureIcon = "iVBORw0KGgoAAAANSUhEUgAAACcAAAAnCAMAAAC7faEHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAzUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKMFRskAAAAQdFJOUwAQIDBAUGBwgI+fr7/P3+8jGoKKAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABT0lEQVQ4T7XT2ZalIAwF0DAJhMH+/6+tJOQqot6X6joPiouNBo3w9/Hd6+hrYnUt6vhLcjEAJevVW0zJxABSlcunhERpjY+UKoNN5+ZgDGu2onNz0OngjP2FM1VdyBW1LtvGeYrBLs7U5I1PTXZt+zifcS3Icw2GcS3vxRY3Vn/iqx31hUyTnV515kdTfbaNhZLI30AceqDiIo4tyKEmJpKdP5M4um+nUwfDWxAXdzqMNKQ14jLdL5ntXzxcRF440mhS6yu882Kxa30RZcUIjTCJg7lscsR4VsMjfX9Q0Vuv/Wd3YosD1J4LuSRtaL7bzXGN1wx2cytUdncDuhA3fu6HPTiCvpQUIjZ3sCcHVbvLtbNTHlysx2w9/s27m9gEb+7CTri6hR1wcTf2gVf3wBRe3CMbcHYvTODkXhnD0+178K/pZ9+n/C1ru/2HAPwAo7YM1X4+tLMAAAAASUVORK5CYII=";
-  
+    const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
 
-
-    // Get the sender's account information.
-    item.from.getAsync((result) => {
-        if (result.status === Office.AsyncResultStatus.Failed) {
-            console.log(result.error.message);
-            event.completed();
-            return;
-        }
-        
-        // Create a signature based on the sender's information.
-        const name = result.value.displayName;
-        const options = { asyncContext: name, isInline: true };
-        item.addFileAttachmentFromBase64Async(signatureIcon, "signatureIcon.png", options, (result) => {
+    if (platform.includes("android")) {
+        // Android-specific logic
+        console.log("Running Android-specific logic...");
+        const plainTextSignature = "Best regards,\nJohn Doe\nCompany Name"; // Plain text fallback
+        item.body.setSignatureAsync(plainTextSignature, { coercionType: Office.CoercionType.Text }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
-                console.log(result.error.message);
-                event.completed();
-                return;
+                console.error(result.error.message);
             }
-
-            // Add the created signature to the message.
-            const signature = loadSignatureFromFile();
-            item.body.setSignatureAsync(signature, { coercionType: Office.CoercionType.Html }, (result) => {
-                if (result.status === Office.AsyncResultStatus.Failed) {
-                    console.log(result.error.message);
-                    event.completed();
-                    return;
-                }
-
-                // Show a notification when the signature is added to the message.
-                // Important: Only the InformationalMessage type is supported in Outlook mobile at this time.
-                const notification = {
-                    type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-                    message: "Legence Corporate Signature Added1" ,
-                    icon: "none",
-                    persistent: false                        
-                };
-                item.notificationMessages.addAsync("signature_notification", notification, (result) => {
-                    if (result.status === Office.AsyncResultStatus.Failed) {
-                        console.log(result.error.message);
-                        event.completed();
-                        return;
-                    }
-
-                    event.completed();
-                });
-            });
+            event.completed();
         });
-    });
+
+        // Android notification
+        const notification = {
+            type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+            message: "Legence Corporate Signature Android Test",
+            icon: "none",
+            persistent: false
+        };
+        Office.context.mailbox.item.notificationMessages.replaceAsync("androidNotification", notification);
+    } else {
+        // Non-Android logic
+        console.log("Running non-Android logic...");
+        const htmlSignature = await loadSignatureFromFile(); // Load HTML signature
+        if (htmlSignature) {
+            item.body.setSignatureAsync(htmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
+                if (result.status === Office.AsyncResultStatus.Failed) {
+                    console.error(result.error.message);
+                }
+                event.completed();
+            });
+        }
+
+        // Non-Android notification
+        const notification = {
+            type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+            message: "Legence Corporate Signature Non-Android Test",
+            icon: "none",
+            persistent: false
+        };
+        Office.context.mailbox.item.notificationMessages.replaceAsync("nonAndroidNotification", notification);
+    }
 }
