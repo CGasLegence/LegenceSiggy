@@ -5,10 +5,27 @@
 
 // Add start-up logic code here, if any.
 Office.onReady();
+function loadSignatureFromFile() {
+    
 
+    // Dynamically build the file path with the user's email
+    const filePath = `https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html?cb=${new Date().getTime()}`;
+    try {
+        const response =  fetch(filePath, { cache: "no-store" }); // no-store ensures no caching
+        if (!response.ok) {
+            throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
+        }
+        return  response.text();
+    } catch (error) {
+        console.error('Error fetching HTML file:', error);
+        return null;
+    }
+}
 function onNewMessageComposeHandler(event) {
     const item = Office.context.mailbox.item;
     const signatureIcon = "iVBORw0KGgoAAAANSUhEUgAAACcAAAAnCAMAAAC7faEHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAzUExURQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKMFRskAAAAQdFJOUwAQIDBAUGBwgI+fr7/P3+8jGoKKAAAACXBIWXMAAA7DAAAOwwHHb6hkAAABT0lEQVQ4T7XT2ZalIAwF0DAJhMH+/6+tJOQqot6X6joPiouNBo3w9/Hd6+hrYnUt6vhLcjEAJevVW0zJxABSlcunhERpjY+UKoNN5+ZgDGu2onNz0OngjP2FM1VdyBW1LtvGeYrBLs7U5I1PTXZt+zifcS3Icw2GcS3vxRY3Vn/iqx31hUyTnV515kdTfbaNhZLI30AceqDiIo4tyKEmJpKdP5M4um+nUwfDWxAXdzqMNKQ14jLdL5ntXzxcRF440mhS6yu882Kxa30RZcUIjTCJg7lscsR4VsMjfX9Q0Vuv/Wd3YosD1J4LuSRtaL7bzXGN1wx2cytUdncDuhA3fu6HPTiCvpQUIjZ3sCcHVbvLtbNTHlysx2w9/s27m9gEb+7CTri6hR1wcTf2gVf3wBRe3CMbcHYvTODkXhnD0+178K/pZ9+n/C1ru/2HAPwAo7YM1X4+tLMAAAAASUVORK5CYII=";
+  
+
 
     // Get the sender's account information.
     item.from.getAsync((result) => {
@@ -17,7 +34,7 @@ function onNewMessageComposeHandler(event) {
             event.completed();
             return;
         }
-
+        
         // Create a signature based on the sender's information.
         const name = result.value.displayName;
         const options = { asyncContext: name, isInline: true };
@@ -29,7 +46,7 @@ function onNewMessageComposeHandler(event) {
             }
 
             // Add the created signature to the message.
-            const signature = "<img src='cid:signatureIcon.png'>" + result.asyncContext;
+            const signature = loadSignatureFromFile();
             item.body.setSignatureAsync(signature, { coercionType: Office.CoercionType.Html }, (result) => {
                 if (result.status === Office.AsyncResultStatus.Failed) {
                     console.log(result.error.message);
@@ -41,7 +58,7 @@ function onNewMessageComposeHandler(event) {
                 // Important: Only the InformationalMessage type is supported in Outlook mobile at this time.
                 const notification = {
                     type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-                    message: "Company signature added.",
+                    message: "Legence Corporate Signature Added",
                     icon: "none",
                     persistent: false                        
                 };
