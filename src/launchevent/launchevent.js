@@ -1,5 +1,5 @@
 /*
- * Mimic clipboard behavior for Outlook Mobile by rendering and inserting the signature.
+ * Insert a cleaned-up HTML signature to avoid extra whitespace.
  */
 
 Office.onReady();
@@ -18,32 +18,30 @@ async function loadSignatureFromFile() {
     }
 }
 
-function renderHtmlForClipboard(html) {
-    // Render the HTML in a hidden container
+function cleanHtmlForWhitespace(html) {
+    // Create a hidden container to process the HTML
     const container = document.createElement("div");
     container.style.visibility = "hidden";
     container.innerHTML = html;
-
-    // Ensure all images are embedded as base64 (if not already)
-    const images = container.querySelectorAll("img");
-    images.forEach((img) => {
-        if (!img.src.startsWith("data:image")) {
-            img.src = convertImageToBase64(img.src);
-        }
-    });
-
     document.body.appendChild(container);
 
-    // Extract the fully rendered innerHTML (clipboard-like content)
-    const processedContent = container.innerHTML;
+    // Normalize margins and padding for all elements
+    const allElements = container.querySelectorAll("*");
+    allElements.forEach((el) => {
+        el.style.margin = "0";
+        el.style.padding = "0";
+        el.style.lineHeight = "1.2"; // Adjust as needed for consistent spacing
+    });
+
+    // Extract cleaned-up HTML
+    const cleanedHtml = container.innerHTML;
     document.body.removeChild(container);
 
-    return processedContent;
+    return cleanedHtml;
 }
 
 async function onNewMessageComposeHandler(event) {
     const item = Office.context.mailbox.item;
-    const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
 
     // Load and process the signature file
     const rawHtmlSignature = await loadSignatureFromFile();
@@ -53,18 +51,18 @@ async function onNewMessageComposeHandler(event) {
         return;
     }
 
-    // Render HTML for clipboard-like insertion
-    const renderedHtmlSignature = renderHtmlForClipboard(rawHtmlSignature);
+    // Clean the HTML to remove extra whitespace
+    const cleanedHtmlSignature = cleanHtmlForWhitespace(rawHtmlSignature);
 
-    // Insert the rendered HTML
-    item.body.setSignatureAsync(renderedHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
+    // Insert the cleaned HTML into the email body
+    item.body.setSignatureAsync(cleanedHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
         if (result.status === Office.AsyncResultStatus.Failed) {
-            console.error(result.error.message);
+            console.error("Error inserting the signature:", result.error.message);
         }
         event.completed();
     });
 
-    // Add a notification to confirm
+    // Add a notification to confirm success
     const notification = {
         type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
         message: "Signature added successfully",
@@ -72,10 +70,4 @@ async function onNewMessageComposeHandler(event) {
         persistent: false
     };
     Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", notification);
-}
-
-// Helper function to convert image URLs to base64
-function convertImageToBase64(imageUrl) {
-    // Fetch the image and convert to base64 (requires server-side or CORS support)
-    return ""; // Placeholder - implement as needed or ensure all images are already base64
 }
