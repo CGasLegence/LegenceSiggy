@@ -9,7 +9,7 @@ function loadSignatureFromFile() {
     
 
     // Dynamically build the file path with the user's email
-    const filePath = `https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html?cb=${new Date().getTime()}`;
+    const filePath = "https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html";
     try {
         const response =  fetch(filePath, { cache: "no-store" }); // no-store ensures no caching
         if (!response.ok) {
@@ -58,7 +58,7 @@ function onNewMessageComposeHandler(event) {
                 // Important: Only the InformationalMessage type is supported in Outlook mobile at this time.
                 const notification = {
                     type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-                    message: "Legence Corporate Signature Added",
+                    message: "Legence Corporate Signature Added1" ,
                     icon: "none",
                     persistent: false                        
                 };
