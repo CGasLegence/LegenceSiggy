@@ -1,47 +1,67 @@
 /*
-* Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
-* See LICENSE in the project root for license information.
+* Copy-paste rendered HTML into the email body with styling (no raw HTML tags).
 */
 
-// Add start-up logic code here, if any.
 Office.onReady();
 
 async function loadSignatureFromFile() {
-    // Dynamically build the file path with the user's email
     const filePath = "https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html";
     try {
-        const response = await fetch(filePath, { cache: "no-store" }); // no-store ensures no caching
+        const response = await fetch(filePath, { cache: "no-store" });
         if (!response.ok) {
             throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
         }
-        return await response.text(); // Return the raw HTML content
+        return await response.text(); // Raw HTML content
     } catch (error) {
-        console.error('Error fetching HTML file:', error);
+        console.error("Error fetching HTML file:", error);
         return null;
     }
 }
 
-function renderHtmlToBody(html) {
-    // Render the HTML content in a hidden container
+function extractRenderedContentWithStyles(html) {
     const container = document.createElement("div");
-    container.style.display = "none"; // Prevent display
+    container.style.visibility = "hidden"; // Ensure it's not visible
     container.innerHTML = html;
-
-    // Extract innerHTML to simulate rendered HTML output (ready for insertion)
     document.body.appendChild(container);
-    const renderedContent = container.innerHTML; // Keep the rendered styles
+
+    // Traverse the DOM to extract styled content
+    const styledText = extractTextWithInlineStyles(container);
     document.body.removeChild(container);
 
-    return renderedContent;
+    return styledText;
+}
+
+function extractTextWithInlineStyles(element) {
+    const traverseAndExtract = (node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent; // Extract text content
+        }
+
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const styles = window.getComputedStyle(node);
+            const color = styles.color;
+            const fontWeight = styles.fontWeight;
+            const fontStyle = styles.fontStyle;
+            const fontSize = styles.fontSize;
+
+            // Wrap text with inline styles
+            const styledText = Array.from(node.childNodes)
+                .map(traverseAndExtract)
+                .join("");
+
+            return `<span style="color:${color}; font-weight:${fontWeight}; font-style:${fontStyle}; font-size:${fontSize};">${styledText}</span>`;
+        }
+
+        return ""; // Ignore other node types
+    };
+
+    return traverseAndExtract(element);
 }
 
 async function onNewMessageComposeHandler(event) {
     const item = Office.context.mailbox.item;
     const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
 
-    console.log(`Detected platform: ${platform}`);
-
-    // Load the signature HTML file
     const rawHtmlSignature = await loadSignatureFromFile();
     if (!rawHtmlSignature) {
         console.error("Failed to load the signature.");
@@ -51,17 +71,15 @@ async function onNewMessageComposeHandler(event) {
 
     if (platform.includes("android")) {
         console.log("Running Android-specific logic...");
-        const renderedSignature = renderHtmlToBody(rawHtmlSignature);
 
-        // Set the "rendered" signature as plain text (closest Android support allows)
-        item.body.setSignatureAsync(renderedSignature, { coercionType: Office.CoercionType.Text }, (result) => {
+        const styledContent = extractRenderedContentWithStyles(rawHtmlSignature);
+        item.body.setSignatureAsync(styledContent, { coercionType: Office.CoercionType.Html }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
                 console.error(result.error.message);
             }
             event.completed();
         });
 
-        // Notify user
         const notification = {
             type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
             message: "Signature added for Android",
@@ -72,14 +90,15 @@ async function onNewMessageComposeHandler(event) {
 
     } else {
         console.log("Running non-Android logic...");
-        item.body.setSignatureAsync(rawHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
+
+        const styledContent = extractRenderedContentWithStyles(rawHtmlSignature);
+        item.body.setSignatureAsync(styledContent, { coercionType: Office.CoercionType.Html }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
                 console.error(result.error.message);
             }
             event.completed();
         });
 
-        // Notify user
         const notification = {
             type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
             message: "Signature added for non-Android platform",
