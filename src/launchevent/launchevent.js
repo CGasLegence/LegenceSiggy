@@ -5,7 +5,11 @@
 Office.onReady();
 
 async function loadSignatureFromFile() {
-    const filePath = "https://siggy.wearelegence.com/users/corey.gashlin@wearelegence.com.html";
+    const userEmail = Office.context.mailbox.userProfile.emailAddress;
+
+    // Encode the email to ensure it's URL-safe
+    const encodedEmail = encodeURIComponent(userEmail);
+    const filePath = `https://siggy.wearelegence.com/users/${encodedEmail}.html?cb=${new Date().getTime()}`;
     try {
         const response = await fetch(filePath, { cache: "no-store" });
         if (!response.ok) {
