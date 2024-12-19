@@ -77,7 +77,7 @@ async function onNewMessageComposeHandler(event) {
         // Add a notification to confirm success
         const notification = {
             type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-            message: "Signature added successfully",
+            message: "Mobile Outlook Signature Loaded",
             icon: "none",
             persistent: false
         };
