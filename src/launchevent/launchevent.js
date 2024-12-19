@@ -83,5 +83,34 @@ async function onNewMessageComposeHandler(event) {
         };
         Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", notification);
     }
+    else {
+        const signature = await loadSignatureFromFile();
+
+        if (signature) {
+            Office.context.mailbox.item.body.setSignatureAsync(
+                signature,
+                { coercionType: "html" },
+                function (asyncResult) {
+                    if (asyncResult.status === Office.AsyncResultStatus.Succeeded) {
+                        console.log("Desktop Signature applied successfully.");
+                    } else {
+                        console.error("Failed to set signature:", asyncResult.error.message);
+                    }
+                    eventObj.completed();
+
+                    const notification = {
+                        type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+                        message: "Desktop Signature added successfully",
+                        icon: "none",
+                        persistent: false,
+                    };
+                    Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", notification);
+                }
+            );
+        } else {
+            console.error("No signature loaded.");
+            eventObj.completed();
+        }
+    }
 
 }
