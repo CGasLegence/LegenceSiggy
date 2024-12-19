@@ -1,5 +1,5 @@
 /*
-* Copy-paste rendered HTML into the email body with styling (no raw HTML tags).
+* Copy-paste rendered HTML into the email body, retaining layout (tables) and inline styles.
 */
 
 Office.onReady();
@@ -18,44 +18,52 @@ async function loadSignatureFromFile() {
     }
 }
 
-function extractRenderedContentWithStyles(html) {
+function renderHtmlWithStructure(html) {
     const container = document.createElement("div");
-    container.style.visibility = "hidden"; // Ensure it's not visible
+    container.style.visibility = "hidden";
     container.innerHTML = html;
     document.body.appendChild(container);
 
-    // Traverse the DOM to extract styled content
-    const styledText = extractTextWithInlineStyles(container);
+    // Convert the rendered HTML to include inline styles
+    const processedHtml = traverseAndApplyStyles(container);
     document.body.removeChild(container);
 
-    return styledText;
+    return processedHtml;
 }
 
-function extractTextWithInlineStyles(element) {
-    const traverseAndExtract = (node) => {
+function traverseAndApplyStyles(element) {
+    const traverseNode = (node) => {
         if (node.nodeType === Node.TEXT_NODE) {
-            return node.textContent; // Extract text content
+            return node.textContent; // Keep text content
         }
 
         if (node.nodeType === Node.ELEMENT_NODE) {
+            const tagName = node.tagName.toLowerCase();
             const styles = window.getComputedStyle(node);
-            const color = styles.color;
-            const fontWeight = styles.fontWeight;
-            const fontStyle = styles.fontStyle;
-            const fontSize = styles.fontSize;
+            let inlineStyle = "";
 
-            // Wrap text with inline styles
-            const styledText = Array.from(node.childNodes)
-                .map(traverseAndExtract)
+            // Extract relevant styles to apply inline
+            Array.from(styles).forEach((style) => {
+                const value = styles.getPropertyValue(style);
+                if (value) {
+                    inlineStyle += `${style}:${value};`;
+                }
+            });
+
+            // Recreate the element with inline styles
+            const openingTag = `<${tagName} style="${inlineStyle}">`;
+            const closingTag = `</${tagName}>`;
+            const children = Array.from(node.childNodes)
+                .map(traverseNode)
                 .join("");
 
-            return `<span style="color:${color}; font-weight:${fontWeight}; font-style:${fontStyle}; font-size:${fontSize};">${styledText}</span>`;
+            return `${openingTag}${children}${closingTag}`;
         }
 
         return ""; // Ignore other node types
     };
 
-    return traverseAndExtract(element);
+    return traverseNode(element);
 }
 
 async function onNewMessageComposeHandler(event) {
@@ -69,11 +77,12 @@ async function onNewMessageComposeHandler(event) {
         return;
     }
 
+    // Render the HTML and apply inline styles
+    const styledHtmlSignature = renderHtmlWithStructure(rawHtmlSignature);
+
     if (platform.includes("android")) {
         console.log("Running Android-specific logic...");
-
-        const styledContent = extractRenderedContentWithStyles(rawHtmlSignature);
-        item.body.setSignatureAsync(styledContent, { coercionType: Office.CoercionType.Html }, (result) => {
+        item.body.setSignatureAsync(styledHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
                 console.error(result.error.message);
             }
@@ -87,12 +96,9 @@ async function onNewMessageComposeHandler(event) {
             persistent: false
         };
         Office.context.mailbox.item.notificationMessages.replaceAsync("androidNotification", notification);
-
     } else {
         console.log("Running non-Android logic...");
-
-        const styledContent = extractRenderedContentWithStyles(rawHtmlSignature);
-        item.body.setSignatureAsync(styledContent, { coercionType: Office.CoercionType.Html }, (result) => {
+        item.body.setSignatureAsync(styledHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
                 console.error(result.error.message);
             }
