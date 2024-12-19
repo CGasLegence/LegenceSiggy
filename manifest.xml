@@ -117,9 +117,9 @@
           <bt:Image id="Icon.80x80" DefaultValue="https://contoso.com/assets/icon-80.png" />
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://contoso.com/commands.html" />
-          <bt:Url id="Taskpane.Url" DefaultValue="https://contoso.com/taskpane.html" />
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://contoso.com/commands.html" />
+          <bt:Url id="Commands.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="Taskpane.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="GroupLabel" DefaultValue="Event-based activation on mobile" />
