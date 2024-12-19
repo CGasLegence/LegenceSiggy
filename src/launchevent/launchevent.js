@@ -14,62 +14,75 @@ async function loadSignatureFromFile() {
         if (!response.ok) {
             throw new Error(`Failed to load file: ${response.status} ${response.statusText}`);
         }
-        return response.text();
+        return await response.text(); // Return the raw HTML content
     } catch (error) {
         console.error('Error fetching HTML file:', error);
         return null;
     }
 }
 
-function renderAndUseHtmlAsText(html) {
-    // Create a hidden DOM element to render the HTML
+function renderHtmlToBody(html) {
+    // Render the HTML content in a hidden container
     const container = document.createElement("div");
+    container.style.display = "none"; // Prevent display
     container.innerHTML = html;
 
-    // Extract rendered text from the HTML
-    return container.innerText;
+    // Extract innerHTML to simulate rendered HTML output (ready for insertion)
+    document.body.appendChild(container);
+    const renderedContent = container.innerHTML; // Keep the rendered styles
+    document.body.removeChild(container);
+
+    return renderedContent;
 }
 
 async function onNewMessageComposeHandler(event) {
     const item = Office.context.mailbox.item;
     const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
 
+    console.log(`Detected platform: ${platform}`);
+
+    // Load the signature HTML file
+    const rawHtmlSignature = await loadSignatureFromFile();
+    if (!rawHtmlSignature) {
+        console.error("Failed to load the signature.");
+        event.completed();
+        return;
+    }
+
     if (platform.includes("android")) {
-        // Android-specific logic
         console.log("Running Android-specific logic...");
-        const plainTextSignature = "Best regards,\nJohn Doe\nCompany Name"; // Plain text fallback
-        item.body.setSignatureAsync(plainTextSignature, { coercionType: Office.CoercionType.Text }, (result) => {
+        const renderedSignature = renderHtmlToBody(rawHtmlSignature);
+
+        // Set the "rendered" signature as plain text (closest Android support allows)
+        item.body.setSignatureAsync(renderedSignature, { coercionType: Office.CoercionType.Text }, (result) => {
             if (result.status === Office.AsyncResultStatus.Failed) {
                 console.error(result.error.message);
             }
             event.completed();
         });
 
-        // Android notification
+        // Notify user
         const notification = {
             type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-            message: "Legence Corporate Signature Android Test",
+            message: "Signature added for Android",
             icon: "none",
             persistent: false
         };
         Office.context.mailbox.item.notificationMessages.replaceAsync("androidNotification", notification);
-    } else {
-        // Non-Android logic
-        console.log("Running non-Android logic...");
-        const htmlSignature = await loadSignatureFromFile(); // Load HTML signature
-        if (htmlSignature) {
-            item.body.setSignatureAsync(htmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
-                if (result.status === Office.AsyncResultStatus.Failed) {
-                    console.error(result.error.message);
-                }
-                event.completed();
-            });
-        }
 
-        // Non-Android notification
+    } else {
+        console.log("Running non-Android logic...");
+        item.body.setSignatureAsync(rawHtmlSignature, { coercionType: Office.CoercionType.Html }, (result) => {
+            if (result.status === Office.AsyncResultStatus.Failed) {
+                console.error(result.error.message);
+            }
+            event.completed();
+        });
+
+        // Notify user
         const notification = {
             type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
-            message: "Legence Corporate Signature Non-Android Test",
+            message: "Signature added for non-Android platform",
             icon: "none",
             persistent: false
         };
