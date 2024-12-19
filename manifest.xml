@@ -11,7 +11,8 @@
   <DisplayName DefaultValue="Legence Auto Signature" />
   <Description DefaultValue="Automated deployment of corporate approve signatures" />
   <IconUrl DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/64x64.png" />
-  <HighResolutionIconUrl DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/final_logo.png" />
+  <HighResolutionIconUrl
+    DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/final_logo.png" />
   <SupportUrl DefaultValue="https://helpdesk.wearelegence.com" />
   <AppDomains>
     <AppDomain>https://cgaslegence.github.io</AppDomain>
@@ -27,7 +28,8 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
+        <SourceLocation
+          DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
@@ -94,6 +96,15 @@
                 </Group>
               </OfficeTab>
             </ExtensionPoint>
+            <ExtensionPoint xsi:type="LaunchEvent">
+              <LaunchEvents>
+                <LaunchEvent Type="OnNewMessageCompose" FunctionName="onNewMessageComposeHandler" />
+
+                <LaunchEvent Type="OnNewAppointmentOrganizer"
+                  FunctionName="onNewMessageComposeHandler" />
+              </LaunchEvents>
+              <SourceLocation resid="WebViewRuntime.Url" />
+            </ExtensionPoint>
           </DesktopFormFactor>
           <!-- Defines the add-in for Outlook mobile. -->
           <MobileFormFactor>
@@ -112,14 +123,20 @@
              Replace these instances with the information of the web server that hosts your add-in's files. -->
       <Resources>
         <bt:Images>
-          <bt:Image id="Icon.16x16" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/16x16.png" />
-          <bt:Image id="Icon.32x32" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/32x32.png" />
-          <bt:Image id="Icon.80x80" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/80x80.png" />
+          <bt:Image id="Icon.16x16"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/16x16.png" />
+          <bt:Image id="Icon.32x32"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/32x32.png" />
+          <bt:Image id="Icon.80x80"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/80x80.png" />
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="Commands.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
-          <bt:Url id="Taskpane.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
-          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="Commands.Url"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="Taskpane.Url"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
+          <bt:Url id="WebViewRuntime.Url"
+            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
         </bt:Urls>
         <bt:ShortStrings>
           <bt:String id="GroupLabel" DefaultValue="Event-based activation on mobile" />
