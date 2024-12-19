@@ -48,6 +48,13 @@ async function onNewMessageComposeHandler(event) {
     const platform = Office.context.mailbox.diagnostics.hostName.toLowerCase();
     const item = Office.context.mailbox.item;
     if (platform.includes("android") || platform.includes("ios")) {
+        const MobileAlert = {
+            type: Office.MailboxEnums.ItemNotificationMessageType.InformationalMessage,
+            message: "Detected Mobile Outlook",
+            icon: "none",
+            persistent: false,
+        };
+        Office.context.mailbox.item.notificationMessages.replaceAsync("signatureNotification", MobileAlert);
         // Load and process the signature file
         const rawHtmlSignature = await loadSignatureFromFile();
         if (!rawHtmlSignature) {
