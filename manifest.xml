@@ -9,10 +9,9 @@
   <ProviderName>Contoso</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="Legence Auto Signature" />
-  <Description DefaultValue="Automated deployment of corporate approve signatures" />
+  <Description DefaultValue="Automated deployment of corporate-approved signatures" />
   <IconUrl DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/64x64.png" />
-  <HighResolutionIconUrl
-    DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/final_logo.png" />
+  <HighResolutionIconUrl DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/final_logo.png" />
   <SupportUrl DefaultValue="https://helpdesk.wearelegence.com" />
   <AppDomains>
     <AppDomain>https://cgaslegence.github.io</AppDomain>
@@ -28,15 +27,14 @@
   <FormSettings>
     <Form xsi:type="ItemRead">
       <DesktopSettings>
-        <SourceLocation
-          DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
+        <SourceLocation DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
         <RequestedHeight>250</RequestedHeight>
       </DesktopSettings>
     </Form>
   </FormSettings>
-  <Permissions>ReadWriteItem</Permissions>
+  <Permissions>ReadWriteMailbox</Permissions>
   <Rule xsi:type="RuleCollection" Mode="Or">
-    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read" />
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Edit" />
   </Rule>
   <DisableEntityHighlighting>false</DisableEntityHighlighting>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides"
@@ -50,103 +48,56 @@
       </Requirements>
       <Hosts>
         <Host xsi:type="MailHost">
-          <!-- The HTML file that references or contains the JavaScript event handlers.
-                    This is used by Outlook on mobile devices. -->
+          <!-- Runtimes for event-based activation -->
           <Runtimes>
+            <!-- Classic Outlook references a JavaScript runtime -->
+            <Runtime resid="ClassicOutlook.Url">
+              <Override type="javascript" resid="ClassicOutlook.Url" />
+            </Runtime>
+            <!-- OWA, New Outlook, and Mobile reference a web-based runtime -->
             <Runtime resid="WebViewRuntime.Url">
             </Runtime>
           </Runtimes>
-          <!-- Defines the add-in for Outlook on Windows (new and classic), on Mac, and on the web. -->
+          <!-- Defines the add-in for Classic Outlook -->
           <DesktopFormFactor>
-            <FunctionFile resid="Commands.Url" />
-            <ExtensionPoint xsi:type="MessageReadCommandSurface">
-              <OfficeTab id="TabDefault">
-                <Group id="msgReadGroup">
-                  <Label resid="GroupLabel" />
-                  <Control xsi:type="Button" id="msgReadOpenPaneButton">
-                    <Label resid="TaskpaneButton.Label" />
-                    <Supertip>
-                      <Title resid="TaskpaneButton.Label" />
-                      <Description resid="TaskpaneButton.Tooltip" />
-                    </Supertip>
-                    <Icon>
-                      <bt:Image size="16" resid="Icon.16x16" />
-                      <bt:Image size="32" resid="Icon.32x32" />
-                      <bt:Image size="80" resid="Icon.80x80" />
-                    </Icon>
-                    <Action xsi:type="ShowTaskpane">
-                      <SourceLocation resid="Taskpane.Url" />
-                    </Action>
-                  </Control>
-                  <Control xsi:type="Button" id="ActionButton">
-                    <Label resid="ActionButton.Label" />
-                    <Supertip>
-                      <Title resid="ActionButton.Label" />
-                      <Description resid="ActionButton.Tooltip" />
-                    </Supertip>
-                    <Icon>
-                      <bt:Image size="16" resid="Icon.16x16" />
-                      <bt:Image size="32" resid="Icon.32x32" />
-                      <bt:Image size="80" resid="Icon.80x80" />
-                    </Icon>
-                    <Action xsi:type="ExecuteFunction">
-                      <FunctionName>action</FunctionName>
-                    </Action>
-                  </Control>
-                </Group>
-              </OfficeTab>
-            </ExtensionPoint>
             <ExtensionPoint xsi:type="LaunchEvent">
               <LaunchEvents>
                 <LaunchEvent Type="OnNewMessageCompose" FunctionName="onNewMessageComposeHandler" />
-
-                <LaunchEvent Type="OnNewAppointmentOrganizer"
-                  FunctionName="onNewMessageComposeHandler" />
+                <LaunchEvent Type="OnNewAppointmentOrganizer" FunctionName="onNewMessageComposeHandler" />
               </LaunchEvents>
               <SourceLocation resid="WebViewRuntime.Url" />
             </ExtensionPoint>
           </DesktopFormFactor>
-          <!-- Defines the add-in for Outlook mobile. -->
+          <!-- Defines the add-in for OWA, New Outlook, and Mobile -->
           <MobileFormFactor>
-            <!-- Configures event-based activation. -->
             <ExtensionPoint xsi:type="LaunchEvent">
               <LaunchEvents>
                 <LaunchEvent Type="OnNewMessageCompose" FunctionName="onNewMessageComposeHandler" />
               </LaunchEvents>
-              <!-- Identifies the runtime to be used (also referenced by the Runtime element). -->
               <SourceLocation resid="WebViewRuntime.Url" />
             </ExtensionPoint>
           </MobileFormFactor>
         </Host>
       </Hosts>
-      <!-- This manifest uses a fictitious web server, contoso.com, to host the add-in's files.
-             Replace these instances with the information of the web server that hosts your add-in's files. -->
+      <!-- Resources -->
       <Resources>
         <bt:Images>
-          <bt:Image id="Icon.16x16"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/16x16.png" />
-          <bt:Image id="Icon.32x32"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/32x32.png" />
-          <bt:Image id="Icon.80x80"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/80x80.png" />
+          <bt:Image id="Icon.16x16" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/16x16.png" />
+          <bt:Image id="Icon.32x32" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/32x32.png" />
+          <bt:Image id="Icon.80x80" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/assets/80x80.png" />
         </bt:Images>
         <bt:Urls>
-          <bt:Url id="Commands.Url"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
-          <bt:Url id="Taskpane.Url"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
-          <bt:Url id="WebViewRuntime.Url"
-            DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="Commands.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="Taskpane.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/taskpane/taskpane.html" />
+          <bt:Url id="WebViewRuntime.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/commands/commands.html" />
+          <bt:Url id="ClassicOutlook.Url" DefaultValue="https://cgaslegence.github.io/LegenceSiggy/src/launchevent/launchevent.js" />
         </bt:Urls>
         <bt:ShortStrings>
-          <bt:String id="GroupLabel" DefaultValue="Event-based activation on mobile" />
+          <bt:String id="GroupLabel" DefaultValue="Siggy Auto Signature" />
           <bt:String id="TaskpaneButton.Label" DefaultValue="Show Taskpane" />
-          <bt:String id="ActionButton.Label" DefaultValue="Perform an action" />
         </bt:ShortStrings>
         <bt:LongStrings>
-          <bt:String id="TaskpaneButton.Tooltip"
-            DefaultValue="Opens a whole lot of nothing" />
-          <bt:String id="ActionButton.Tooltip" DefaultValue="Perform an action when clicked." />
+          <bt:String id="TaskpaneButton.Tooltip" DefaultValue="Opens a taskpane to configure signatures." />
         </bt:LongStrings>
       </Resources>
     </VersionOverrides>

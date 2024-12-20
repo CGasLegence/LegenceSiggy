@@ -114,3 +114,4 @@ async function onNewMessageComposeHandler(event) {
     }
 
 }
+Office.actions.associate("checkSignature", checkSignature);
